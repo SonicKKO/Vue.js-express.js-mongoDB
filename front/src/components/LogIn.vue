@@ -1,11 +1,13 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const email = ref('');
 const password = ref('');
 const passwordVisible = ref(false);
 const errors = ref({});
+const router = useRouter();
 
 const validateForm = () => {
   errors.value = {};
@@ -28,20 +30,30 @@ const validateForm = () => {
 const loginUser = async () => {
   if (validateForm()) {
     try {
-      const response = await axios.post("http://localhost:5137/api/login", {
+      const response = await axios.post('http://localhost:5137/api/login', {
         email: email.value,
-        password: password.value
+        password: password.value,
       });
-      console.log(response.data);
+      localStorage.setItem('token', response.data.token);
+      router.push('/profile');
     } catch (error) {
       console.error(error.response.data);
+
       if (error.response.status === 401) {
-        if (error.response.data.message.includes('почта')) {
+        const errorMessage = error.response.data.message;
+
+        if (errorMessage?.includes('почта')) {
           errors.value.email = 'Пользователь не найден';
         }
-        if (error.response.data.message.includes('имя')) {
+
+        if (errorMessage?.includes('факе')) {
           errors.value.password = 'Неверный пароль';
         }
+        return Object.keys(errors.value).length === 0;
+      } else if (error.response.status === 400) {
+        console.error("запрос хуита:", error.response.data.message);
+      } else {
+        console.error("чет не так:", error);
       }
     }
   }
@@ -62,13 +74,13 @@ const togglePasswordVisibility = () => {
         <span v-if="errors.email" class="text-red-500">{{ errors.email }}</span>
       </div>
 
-      <div class="mb-2 relative">
+      <div class="mb-4 ">
         <label for="password" class="block mb-2">Пароль:</label>
         <input :type="passwordVisible ? 'text' : 'password'" v-model="password" id="password" class="w-full p-2 border rounded-md" />
-        <button type="button" @click="togglePasswordVisibility" class="absolute inset-y-12 right-0 flex items-center px-3 text-gray-500">
-          <img v-if="passwordVisible" src="../assets/show-password.png" alt="Show Password" class="h-5 w-5" />
-          <img v-else src="../assets/hide-password.png" alt="Hide Password" class="h-5 w-5" />
-        </button>
+        <button type="button" @click="togglePasswordVisibility" class=" ml-[88%] -translate-y-8  px-3 text-gray-500 ">
+          <img v-if="passwordVisible" src="../assets/show-password.png" alt="Показать пароль" class="h-5 w-5 -z-10" />
+          <img v-else src="../assets/hide-password.png" alt="Скрыть пароль" class="h-5 w-5 -z-10" />
+        </button> 
         <span v-if="errors.password" class="text-red-500">{{ errors.password }}</span>
       </div>
 

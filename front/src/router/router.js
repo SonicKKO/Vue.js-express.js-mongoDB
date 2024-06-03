@@ -21,11 +21,12 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    if(to.meta.reuiresAuth && !StorageEvent.state.auth.isAuthenticated) {
-        next('/LogIn')
+    const token = localStorage.getItem('token');
+    if (to.matched.some(record => record.meta.requiresAuth) && !token) {
+      next('/LogIn');
     } else {
-        next()
+      next();
     }
-});
+  });
 
 export default router;

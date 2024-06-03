@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const name = ref('');
 const email = ref('');
 const password = ref('');
 const passwordVisible = ref(false);
 const errors = ref({});
+const router = useRouter();
 
 const validateForm = () => {
   errors.value = {};
@@ -38,8 +40,16 @@ const registerUser = async () => {
         email: email.value,
         password: password.value
       });
+     
       console.log(response.data);
-      // Handle success
+
+      // Очистка полей формы
+      name.value = '';
+      email.value = '';
+      password.value = '';
+
+      // Перенаправление на страницу авторизации
+      router.push('/login');
     } catch (error) {
       console.error(error.response.data);
       if (error.response.status === 400) {
@@ -51,9 +61,6 @@ const registerUser = async () => {
         }
       }
     }
-    name.value = '';
-    email.value = '';
-    password.value = '';
   }
 };
 
@@ -81,7 +88,7 @@ const togglePasswordVisibility = () => {
       <div class="mb-4 ">
         <label for="password" class="block mb-2">Пароль:</label>
         <input :type="passwordVisible ? 'text' : 'password'" v-model="password" id="password" class="w-full p-2 border rounded-md" />
-        <button type="button" @click="togglePasswordVisibility" class=" pl-[90%] -translate-y-8  px-3 text-gray-500 ">
+        <button type="button" @click="togglePasswordVisibility" class=" ml-[88%] -translate-y-8  px-3 text-gray-500 ">
           <img v-if="passwordVisible" src="../assets/show-password.png" alt="Показать пароль" class="h-5 w-5 -z-10" />
           <img v-else src="../assets/hide-password.png" alt="Скрыть пароль" class="h-5 w-5 -z-10" />
         </button> 

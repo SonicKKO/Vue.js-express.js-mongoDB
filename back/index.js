@@ -17,7 +17,7 @@ dotenv.config();
 console.log("MongoDB URL:", process.env.MONGO_URL);
 
 app.use(express.json());
-
+app.use(cors({ origin: 'http://localhost:5173' }));
 
 // подключение к БД через mongoose
 mongoose
@@ -118,8 +118,31 @@ app.post("/api/login", cors(), async (req, res) => {
   }
 });
 
+function authMiddleware(req, res, next) {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) {
+    return res.status(401).send('Access denied. No token provided.');
+  }
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded;
+    next();
+  } catch (ex) {
+    res.status(400).send('Invalid token.');
+  }
+};
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.get('/api/profile', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (error) {
+    res.status(500).send('Server error');
+  }
+});
+
+
+
 app.use(morgan("common"));
 app.listen(5137, () => {
   console.log("Бэк сервер ворк на http://localhost:5137");
