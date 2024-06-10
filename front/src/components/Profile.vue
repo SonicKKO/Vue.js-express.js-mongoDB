@@ -9,17 +9,16 @@ const router = useRouter();
 const fetchUserProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    console.log(token)
+    console.log(token); 
     const response = await axios.get('http://localhost:5137/api/profile', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
     user.value = response.data;
-    // console.log(user.value);
-    // console.log(response.data);
+    console.log(user.value);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('запрос по инфе польз не тудасуда', error);
   }
 };
 

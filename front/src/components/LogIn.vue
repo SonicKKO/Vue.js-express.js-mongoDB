@@ -23,7 +23,6 @@ const validateForm = () => {
   } else if (password.value.length < 6) {
     errors.value.password = 'Пароль должен содержать не менее 6 символов';
   }
-
   return Object.keys(errors.value).length === 0;
 };
 

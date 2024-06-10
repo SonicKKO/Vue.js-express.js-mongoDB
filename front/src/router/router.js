@@ -20,13 +20,15 @@ const router = createRouter({
     routes
 });
 
+
+
 router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('token');
-    if (to.matched.some(record => record.meta.requiresAuth) && !token) {
-      next('/LogIn');
-    } else {
-      next();
-    }
-  });
+  const token = localStorage.getItem('token');
+  if (to.name === 'profile' && !token) {
+    next({ name: 'login' });
+  } else {
+    next();
+  }
+});
 
 export default router;

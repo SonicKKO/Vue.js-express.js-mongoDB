@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
 
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = 'monkeyFlip';
@@ -17,6 +18,7 @@ dotenv.config();
 console.log("MongoDB URL:", process.env.MONGO_URL);
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({ origin: 'http://localhost:5173' }));
 
 // подключение к БД через mongoose
@@ -108,8 +110,12 @@ app.post("/api/login", cors(), async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({ error: "факе пассворд" });
     }
+
 //выдача токена при авторизации
     const token = jwt.sign({ id: user._id }, SECRET_KEY, { expiresIn: "24h" });
+    
+//кукисы хуюкисы
+    res.cookie('token', token, { httpOnly: true });
 
     res.json({ token });
   } catch (error) {
@@ -118,28 +124,28 @@ app.post("/api/login", cors(), async (req, res) => {
   }
 });
 
+app.get('/api/profile', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password'); // Exclude password
+    res.json(user);
+  } catch (error) {
+    res.status(500).send('чет слетело');
+  }
+});
+
 function authMiddleware(req, res, next) {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) {
-    return res.status(401).send('Access denied. No token provided.');
+    return res.status(401).send('Траблы с токеном');
   }
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
     req.user = decoded;
     next();
   } catch (ex) {
-    res.status(400).send('Invalid token.');
+    res.status(400).send('токен бобо');
   }
-};
-
-app.get('/api/profile', authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
-  } catch (error) {
-    res.status(500).send('Server error');
-  }
-});
+}
 
 
 
