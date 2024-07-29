@@ -7,6 +7,7 @@ const email = ref('');
 const password = ref('');
 const passwordVisible = ref(false);
 const errors = ref({});
+const generalErrorMessage = ref('');
 const router = useRouter();
 
 const validateForm = () => {
@@ -34,12 +35,17 @@ const loginUser = async () => {
         password: password.value,
       });
       localStorage.setItem('token', response.data.token);
-      router.push('/profile');
+      router.push('/profile').then(() => {
+    window.location.reload();
+  }).catch((error) => {
+    console.error('хуй те', error);
+  });
     } catch (error) {
       console.error(error.response.data);
+      generalErrorMessage.value = '';
 
       if (error.response.status === 401) {
-        const errorMessage = error.response.data.message;
+        const errorMessage = error.response.data.error;
 
         if (errorMessage?.includes('почта')) {
           errors.value.email = 'Пользователь не найден';
@@ -48,11 +54,10 @@ const loginUser = async () => {
         if (errorMessage?.includes('факе')) {
           errors.value.password = 'Неверный пароль';
         }
-        return Object.keys(errors.value).length === 0;
       } else if (error.response.status === 400) {
-        console.error("запрос хуита:", error.response.data.message);
+        generalErrorMessage.value = "Запрос некорректный: " + error.response.data.message;
       } else {
-        console.error("чет не так:", error);
+        generalErrorMessage.value = "Что-то пошло не так: " + error.message;
       }
     }
   }
@@ -73,13 +78,13 @@ const togglePasswordVisibility = () => {
         <span v-if="errors.email" class="text-red-500">{{ errors.email }}</span>
       </div>
 
-      <div class="mb-4 ">
+      <div class="mb-4">
         <label for="password" class="block mb-2">Пароль:</label>
         <input :type="passwordVisible ? 'text' : 'password'" v-model="password" id="password" class="w-full p-2 border rounded-md" />
-        <button type="button" @click="togglePasswordVisibility" class=" ml-[88%] -translate-y-8  px-3 text-gray-500 ">
+        <button type="button" @click="togglePasswordVisibility" class="ml-[88%] -translate-y-8 px-3 text-gray-500">
           <img v-if="passwordVisible" src="../assets/show-password.png" alt="Показать пароль" class="h-5 w-5 -z-10" />
           <img v-else src="../assets/hide-password.png" alt="Скрыть пароль" class="h-5 w-5 -z-10" />
-        </button> 
+        </button>
         <span v-if="errors.password" class="text-red-500">{{ errors.password }}</span>
       </div>
 
@@ -91,6 +96,7 @@ const togglePasswordVisibility = () => {
         <button type="submit" class="h-[45px] w-[100px] m-auto bg-blue-500 text-white rounded-md hover:bg-blue-600">Готово</button>
       </div>
     </form>
+    <div v-if="generalErrorMessage" class="text-red-500 text-center mt-4">{{ generalErrorMessage }}</div>
   </div>
 </template>
 
