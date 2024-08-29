@@ -18,9 +18,14 @@
   dotenv.config();
   console.log("MongoDB URL:", process.env.MONGO_URL);
 
+  const corsOptions = {
+    origin: 'http://localhost:5173', // заменить на ваш фронтенд
+    credentials: true, // включить передачу куки и заголовков авторизации
+  };
+
   app.use(express.json());
   app.use(cookieParser());
-  app.use(cors({ origin: 'http://localhost:5173' }));
+  app.use(cors(corsOptions));
   app.use('/uploads', express.static('uploads'));
 
   // подключение к БД через mongoose
@@ -52,13 +57,11 @@
     }
 
     const onenews = await News.findById(id)
-      .then((onenews) => {
-        if (!onenews) {
-          return res.status(404).json({ message: "пусто вроде" });
-        }
-        res.json(onenews);
-      })
-      .catch((err) => res.status(500).json({ message: "бооооо сервер" }));
+      .then((onenews) => !onenews
+        ? res.status(404).json({ message: "пусто вроде" })
+        : res.json(onenews)
+      )
+      .catch(() => res.status(500).json({ message: "бооооо сервер" }));
   });
 
   app.post("/api/register", cors(), async (req, res) => {
@@ -116,7 +119,29 @@
     }
   });
 
-  app.get('/api/profile', authMiddleware, async (req, res) => {
+  app.post('/api/refresh-token', cors(), verifyToken, async (req, res) => {
+    try {
+        const userId = req.user.id; // Получаем ID пользователя из проверенного токена
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Не удалось аутентифицировать пользователя' });
+        }
+
+        // Генерируем новый токен
+        const newToken = jwt.sign({ id: userId }, SECRET_KEY, { expiresIn: '24h' });
+
+        // Обновляем токен в cookie
+        res.cookie('token', newToken, { httpOnly: true });
+
+        res.json({ token: newToken });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Ошибка при обновлении токена');
+    }
+});
+  
+
+  app.get('/api/profile', verifyToken, async (req, res) => {
     try {
       const user = await User.findById(req.user.id).select('-password'); 
       res.json(user);
@@ -125,7 +150,21 @@
     }
   });
 
-  function authMiddleware(req, res, next) {
+  app.put('/api/profile', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name } = req.body;
+    await User.findByIdAndUpdate(userId, { name });
+
+    res.status(200).json({ message: 'Профиль обновлен' });
+  } catch (error) {
+    console.error('Ошибка при обновлении профиля:', error);
+    res.status(500).json({ message: 'Ошибка при обновлении профиля' });
+  }
+  });
+
+
+  function verifyToken(req, res, next) {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) {
       return res.status(401).send('Траблы с токеном');
@@ -138,6 +177,54 @@
       res.status(400).send('токен бобо');
     }
   };
+
+  const verifyAdmin = ( req, res, next) => {
+    const token = req.cookies.token;
+    if (!token) return res.status(403).send('низа');
+
+    try {
+      const verified = jwt.verify(token, SECRET_KEY);
+      if (verified.role !== 'admin') return res.status(403).send('динах');
+      next();
+    } catch {
+      res.status(400).send('Неверный токен');
+    }
+  };
+
+  app.post('/api/add-news',  async (req, res) => {
+  try {
+    const { title, text, imgUrl } = req.body;
+    const newNews = new News({ title, text, imgUrl, date: new Date() });
+    await newNews.save();
+    res.status(201).json({ message: 'Новость добавлена', news: newNews });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Ошибка при добавлении новости' });
+  }
+  });
+
+  app.delete('/api/news', async (req, res) => {
+    try {
+      const { _id } = req.body;
+  
+      if (!_id) {
+        return res.status(400).json({ message: 'ID новости не пришел' });
+      }
+  
+      const result = await News.deleteOne({ _id });
+  
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ message: 'Новость не найдена' });
+      }
+  
+      res.status(200).json({ message: 'Новость удалена' });
+    } catch (error) {
+      console.error('Ошибка при удалении новости:', error);
+      res.status(500).json({ message: 'Ошибка при удалении новости' });
+    }
+  });
+  
+
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -180,7 +267,7 @@
     }
   });
 
-  app.delete('/api/deleteAccount', authMiddleware, async (req, res) => {
+  app.delete('/api/deleteAccount', verifyToken, async (req, res) => {
     try {
       const userId = req.user.id;
       const user = await User.findById(userId);
@@ -200,8 +287,7 @@
     }
   });
   
-
   app.use(morgan("common"));
   app.listen(5137, () => {
-    console.log("Бэк сервер ворк на http://localhost:5137");
+    console.log("Бэк ворк на http://localhost:5137");
   });

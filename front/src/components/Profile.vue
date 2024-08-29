@@ -1,9 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';  
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import vueFilePond from 'vue-filepond';
-
 
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
@@ -13,7 +12,6 @@ import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
 import 'filepond/dist/filepond.min.css';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 
-// регистрация плагина
 const FilePond = vueFilePond(
   FilePondPluginImagePreview,
   FilePondPluginImageExifOrientation,
@@ -26,15 +24,19 @@ const router = useRouter();
 const myFiles = ref([]);
 const showFilePond = ref(false);
 const isLoading = ref(false);
+const editingName = ref(false);
+const newName = ref('');
+const editProfile = ref(false);
+const isAdmin = ref(false);
 
-//проверка
+
 function handleFilePondInit() {
   console.log('плагин воркае');
-};
+}
 
 function handleProcessFileStart(file) {
   console.log('началася', file);
-};
+}
 
 function handleFilesProcess(files) {
   console.log('нармал все', files);
@@ -44,10 +46,10 @@ const fetchUserProfile = async () => {
   isLoading.value = true;
   try {
     const token = localStorage.getItem('token');
-    console.log('Retrieved Token:', token); // Verify token retrieval
+    console.log('токен', token);
 
     if (!token) {
-      throw new Error('Token not found in localStorage');
+      throw new Error('токена нет в локалстор');
     }
 
     const response = await axios.get('http://localhost:5137/api/profile', {
@@ -56,19 +58,40 @@ const fetchUserProfile = async () => {
       }
     });
     user.value = response.data;
-    console.log('User profile:', user.value); // Log user profile data
+    newName.value = user.value.name; 
+    isAdmin.value = user.value.role === 'admin';
+    console.log('профиль', user.value);
   } catch (error) {
-    console.error('Error fetching user profile:', error); // Log fetching error
+    console.error('мист:', error);
   } finally {
-        isLoading.value = false;
-    }
+    isLoading.value = false;
+  }
+};
+
+const updateUserProfile = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.put(
+      'http://localhost:5137/api/profile',
+      { name: newName.value }, // отправляем новое имя
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    user.value.name = newName.value;
+    editingName.value = false; // выход из режима редактирования
+    window.location.reload();
+  } catch (error) {
+    console.error('Ошибка при обновлении имени:', error);
+  }
 };
 
 onMounted(() => {
   fetchUserProfile();
 });
 
-// обработчик для успешного процесса загрузки файла
 async function handleProcessFile(event, file) {
   console.log('Файл загружен:', file);
 
@@ -76,11 +99,10 @@ async function handleProcessFile(event, file) {
     await deleteOldProfilePicture();
   }
 
-  fetchUserProfile();  // обновить профиль пользователя после загрузки файла
-  showFilePond.value = false;  // скрыть FilePond после загрузки
-};
+  fetchUserProfile(); // обновить профиль пользователя после загрузки файла
+  showFilePond.value = false; // скрыть FilePond после загрузки
+}
 
-// удалить старое фото профиля
 const deleteOldProfilePicture = async () => {
   try {
     const userId = user.value._id;
@@ -92,7 +114,6 @@ const deleteOldProfilePicture = async () => {
   }
 };
 
-// якась конфигурация с документации
 const serverConfig = {
   url: 'http://localhost:5137',
   process: {
@@ -100,13 +121,13 @@ const serverConfig = {
     method: 'POST',
     withCredentials: false,
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      Authorization: `Bearer ${localStorage.getItem('token')}`
     },
     ondata: (formData) => {
       formData.append('userId', user.value._id || '');
       return formData;
     },
-    name: 'file', 
+    name: 'file',
   },
   revert: null,
   restore: null,
@@ -114,14 +135,16 @@ const serverConfig = {
   fetch: null,
 };
 
-const changeProfilePicture = () => {
+const editingProfile = () => {
+  editProfile.value = true; 
   showFilePond.value = true;
+  editingName.value = true;
 };
 </script>
 
 
 <template>
-  <div class="h-[82vh]">
+  <div class="h-[80vh] w-[100vw]">
 
    <template v-if="isLoading">
       <div class="flex justify-center items-center h-[70vh]">
@@ -133,14 +156,11 @@ const changeProfilePicture = () => {
       <h2 class="text-center mb-5">Профиль пользователя</h2>
 
         <div v-if="user.profilePicture">
-      <img :src="`http://localhost:5137/${user.profilePicture}`" alt="Profile Picture" class="w-[200px] h-[200px] object-cover rounded-full mx-auto mt-4"/>
-      <div class="flex justify-center mt-4">
-        <button @click="changeProfilePicture" class="bg-blue-500 text-white px-4 py-2 rounded">Изменить фото профиля</button>
-      </div>
+          <img :src="`http://localhost:5137/${user.profilePicture}`" alt="Profile Picture" class="w-[200px] h-[200px] object-cover rounded-full mx-auto mt-4"/>
         </div>
    
         <div v-if="!user.profilePicture">
-      <img src="../assets/images.jpg" alt="" class="mx-auto rounded-full mb-3 w-[200px] h-[200px]">
+          <img src="../assets/images.jpg" alt="" class="mx-auto rounded-full mb-3 w-[200px] h-[200px]">
         </div>
 
         <div v-if="!user.profilePicture || showFilePond">
@@ -165,8 +185,27 @@ const changeProfilePicture = () => {
       />
         </div>
 
-      <p>Имя: {{ user.name }}</p>
+      <p>Имя: 
+        <span v-if="!editingName">{{ user.name }}</span>
+        <input v-if="editingName" 
+               v-model="newName" 
+               class="borde rounded p-1" />
+      </p>
       <p>Почта: {{ user.email }}</p>
+      <p>Роль: {{ user.role }}</p>
+      <button v-if="editProfile" @click="updateUserProfile">Сохранить</button>
+
+      <div class=" h-[150px] w-[200px]">
+        <button @click="editingProfile" 
+                v-if="!editProfile" 
+                class="h-[30px] border rounded bg-green-500 mt-3">Редактировать</button>
+        <router-link to="/NewsList">
+           <button v-if="isAdmin"
+                    class="h-[30px] rounded border mt-3">Управление новостями
+           </button> 
+        </router-link>       
+      </div>
+
    </template>
 
   </div>

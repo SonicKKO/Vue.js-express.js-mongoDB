@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const name = ref('');
+name.value = 2;
 const email = ref('');
 const password = ref('');
 const passwordVisible = ref(false);
@@ -52,7 +53,7 @@ const registerUser = async () => {
       router.push('/login');
     } catch (error) {
       console.error(error.response.data);
-      if (error.response.status === 400) {
+      if (error.response.status !== 400) {
         if (error.response.data.message.includes('почта')) {
           errors.value.email = 'Пользователь с такой почтой уже существует';
         }

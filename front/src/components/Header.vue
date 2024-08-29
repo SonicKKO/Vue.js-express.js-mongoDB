@@ -5,7 +5,7 @@ import SideBar from './SideBar.vue'
 </script>
 
 <template>
-  <div class="flex h-[9vh] border-b">
+  <div class="flex h-[9vh] w-[100vw] border-b">
     <router-link to="/">
       <div class="w-[45vw]">
         <img src="" alt="logo" class="h-[90%] pt-2 pl-2">

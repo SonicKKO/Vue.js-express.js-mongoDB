@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema({
     name: String,
     password: {type: String, required: true},
     profilePicture: String,
+    role: { type: String, default: 'user' }
 });
 
 UserSchema.methods.comparePassword = async function(candidatePassword) {
