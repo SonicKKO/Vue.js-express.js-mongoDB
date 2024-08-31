@@ -60,7 +60,7 @@ const fetchUserProfile = async () => {
     user.value = response.data;
     newName.value = user.value.name; 
     isAdmin.value = user.value.role === 'admin';
-    console.log('профиль', user.value);
+    console.log('профиль', user.value);  
   } catch (error) {
     console.error('мист:', error);
   } finally {
@@ -72,8 +72,8 @@ const updateUserProfile = async () => {
   try {
     const token = localStorage.getItem('token');
     await axios.put(
-      'http://localhost:5137/api/profile',
-      { name: newName.value }, // отправляем новое имя
+      'http://localhost:5137/api/update-profile',
+      { name: newName.value }, // отпр нвоое имя
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -81,7 +81,7 @@ const updateUserProfile = async () => {
       }
     );
     user.value.name = newName.value;
-    editingName.value = false; // выход из режима редактирования
+    editingName.value = false; 
     window.location.reload();
   } catch (error) {
     console.error('Ошибка при обновлении имени:', error);
@@ -95,24 +95,24 @@ onMounted(() => {
 async function handleProcessFile(event, file) {
   console.log('Файл загружен:', file);
 
-  if (user.value.profilePicture) {
-    await deleteOldProfilePicture();
-  }
+  // if (user.value.profilePicture) {
+  //   await deleteOldProfilePicture();
+  // }
 
   fetchUserProfile(); // обновить профиль пользователя после загрузки файла
   showFilePond.value = false; // скрыть FilePond после загрузки
 }
 
-const deleteOldProfilePicture = async () => {
-  try {
-    const userId = user.value._id;
-    await axios.delete(`http://localhost:5137/deleteProfilePicture/${userId}`);
-    fetchUserProfile();
-    console.log('Старое фото профиля удалено');
-  } catch (error) {
-    console.error('Ошибка при удалении старого фото профиля:', error);
-  }
-};
+// const deleteOldProfilePicture = async () => {
+//   try {
+//     const userId = user.value._id;
+//     await axios.delete(`http://localhost:5137/deleteProfilePicture/${userId}`);
+//     fetchUserProfile();
+//     console.log('Старое фото профиля удалено');
+//   } catch (error) {
+//     console.error('Ошибка при удалении старого фото профиля:', error);
+//   }
+// };
 
 const serverConfig = {
   url: 'http://localhost:5137',

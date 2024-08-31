@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import AdminNewsSample from './AdminNewsSample.vue';
 
-const isAdmin = ref(false);
 const news = ref([]);
 const isLoading = ref(false);
 const confirmDelete = ref(false);
@@ -15,7 +14,7 @@ const deleteNews = async () => {
 
     if (!selectedNewsId.value) return;
 
-    await axios.delete('http://localhost:5137/api/news', {
+    await axios.delete('http://localhost:5137/api/delete-news', {
       headers: {
         Authorization: `Bearer ${token}`
       },
