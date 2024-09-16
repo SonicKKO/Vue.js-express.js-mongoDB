@@ -35,7 +35,7 @@ const loginUser = async () => {
         password: password.value,
       });
       localStorage.setItem('token', response.data.token);
-      router.push('/profile').then(() => {
+      router.push('/profile').then(() => { 
     window.location.reload();
   }).catch((error) => {
     console.error('хуй те', error);

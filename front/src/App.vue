@@ -1,5 +1,5 @@
 <script setup>
-import Header from './components/Header.vue';
+import Header from './components/Header/Header.vue';
 import SM from './components/SM.vue';
 </script>
 

@@ -75,6 +75,11 @@ const navigateToNews = () => {
       <div class="flex h-[95%]">
             <h1 class="h-[40px] text-end pr-2 text-b text-lg ml-auto mt-auto cursor-pointer"
              @click="handleProfileClick">Профиль</h1>
+            <div class="h-[30px] mt-auto mb-2">
+              <router-link to="/ChatList">
+               <img src="../../assets/messege.png" alt="" class="h-[30px]">
+              </router-link>
+            </div>
             <h2 class="text-[40px] w-[70px] mb-2 text-center " @click="toggleElement">&#8801;</h2>
         <div v-if="showElement">
             <div @click="hideElement" class="h-[100vh] w-[100vw] absolute -translate-x-[100vw] backdrop-blur-[3px]"></div>

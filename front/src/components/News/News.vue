@@ -32,33 +32,34 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="h-[82vh] w-[100vw] pt-4 ">
-      <h1 class="text-center font-bold uppercase mb-3 ">новости</h1>
-        <div class="h-[90%] w-[100%] overflow-y-auto  border ">
-
-            <template v-if="isLoading">
-                <div class="flex justify-center items-center h-full">
-                    <div class="loader"></div>
-                </div>
-            </template>
-
-            <template v-else>
-              <div v-for="item in news" :key="item._id" class="flex items-center mb-2">
-                <router-link :to="'/FullNews/' + item._id" class="flex-grow">
-                  <NewsSample 
-                    :_id="item._id"
-                    :title="item.title"
-                    :text="item.text"
-                    :date="item.formattedDate"
-                    :imgUrl="item.imgUrl"
-                  />
-                </router-link>
-              </div>
-            </template>
-
-        </div>
+    <div class="h-[82vh] w-[100vw] pt-4">
+      <h1 class="text-center font-bold uppercase mb-3">новости</h1>
+      <div class="h-[90%] w-[100%] overflow-y-auto border">
+        <template v-if="isLoading">
+          <div class="flex justify-center items-center h-full">
+            <div class="loader"></div>
+          </div>
+        </template>
+  
+        <template v-else>
+          <div class="grid  md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+            <div v-for="item in news" :key="item._id" class="flex mb-2">
+              <router-link :to="'/FullNews/' + item._id" class="flex-grow">
+                <NewsSample 
+                  :_id="item._id"
+                  :title="item.title"
+                  :text="item.text"
+                  :date="item.formattedDate"
+                  :imgUrl="item.imgUrl"
+                />
+              </router-link>
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
-</template>
+  </template>
+  
 
 <style scoped>
 .loader {

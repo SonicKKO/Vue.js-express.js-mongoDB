@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const User = require("../models/auth"); 
-const SECRET_KEY = 'monkeyFlip'; 
+const SECRET_KEY = process.env.SECRET_KEY; 
 
 exports.register = async (req, res) => {
   try {

@@ -95,24 +95,10 @@ onMounted(() => {
 async function handleProcessFile(event, file) {
   console.log('Файл загружен:', file);
 
-  // if (user.value.profilePicture) {
-  //   await deleteOldProfilePicture();
-  // }
 
-  fetchUserProfile(); // обновить профиль пользователя после загрузки файла
-  showFilePond.value = false; // скрыть FilePond после загрузки
-}
-
-// const deleteOldProfilePicture = async () => {
-//   try {
-//     const userId = user.value._id;
-//     await axios.delete(`http://localhost:5137/deleteProfilePicture/${userId}`);
-//     fetchUserProfile();
-//     console.log('Старое фото профиля удалено');
-//   } catch (error) {
-//     console.error('Ошибка при удалении старого фото профиля:', error);
-//   }
-// };
+  fetchUserProfile();
+  showFilePond.value = false; 
+};
 
 const serverConfig = {
   url: 'http://localhost:5137',
@@ -140,6 +126,7 @@ const editingProfile = () => {
   showFilePond.value = true;
   editingName.value = true;
 };
+
 </script>
 
 

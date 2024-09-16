@@ -8,6 +8,12 @@ const text = ref('');
 const imgUrl = ref('');
 const router = useRouter();
 
+const autoResize = (event) => {
+  const textarea = event.target;
+  textarea.style.height = 'auto'; 
+  textarea.style.height = `${textarea.scrollHeight}px`; 
+};
+
 const addNews = async () => {
   try {
     await axios.post('http://localhost:5137/api/add-news', { title: title.value, text: text.value, imgUrl: imgUrl.value });
@@ -31,7 +37,10 @@ const addNews = async () => {
       </div>
       <div class="mb-3">
         <label for="text" class="font-bold">Текст</label>
-        <textarea v-model="text" id="text" required class="ml-4 w-[70vw] rounded"></textarea>
+        <textarea v-model="text"
+                  @input="autoResize"
+                  id="text" required 
+                  class="ml-4 w-[70vw] rounded"></textarea>
       </div>
       <div class="mb-3">
         <label for="imgUrl" class="font-bold">Изображение</label>

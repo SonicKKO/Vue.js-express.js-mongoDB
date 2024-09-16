@@ -11,7 +11,7 @@ import SideBar from './SideBar.vue'
         <img src="" alt="logo" class="h-[90%] pt-2 pl-2">
       </div>
     </router-link>
-     
+
     <SideBar/>
   </div>
 </template>
